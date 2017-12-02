@@ -1,0 +1,108 @@
+ !-------------------------------------------------------!
+ ! Welcome to Poreblazer_v3.0.2/Linux/Windows XP         !
+ ! Developed by: Lev Sarkisov, 2012                      !
+ ! Cite: Sarkisov, Harrison, Molecular Simulation, 2011  !
+ !-------------------------------------------------------!
+
+ Step 1/8
+ !-------------------------------------------------------!
+ ! Proceed with initialization and data input            !
+ !-------------------------------------------------------!
+
+ !-------------------------------------------------------!
+ ! Initialization complete                               !
+ !-------------------------------------------------------!
+
+ Step 2/8
+ !-------------------------------------------------------!
+ ! Starting preliminary lattice calculations             !
+ !-------------------------------------------------------!
+
+ !-------------------------------------------------------!
+ ! Preliminary lattice complete                          !
+ !-------------------------------------------------------!
+
+ Step 3/8
+ !-------------------------------------------------------!
+ ! Generation of helium-accessible lattice               !
+ !-------------------------------------------------------!
+
+ !-------------------------------------------------------!
+ ! Generation of helium-accessible lattice complete      !
+ !-------------------------------------------------------!
+
+ Step 4/8
+ !-------------------------------------------------------!
+ ! Generation of nitrogen-accessible lattice             !
+ !-------------------------------------------------------!
+
+ !-------------------------------------------------------!
+ ! Generation of nitrogen-accessible lattice complete    !
+ !-------------------------------------------------------!
+
+ Step 5/8
+ !-------------------------------------------------------!
+ ! Starting pore volume calculations                     !
+ !-------------------------------------------------------!
+
+ System volume in A^3:       18280.821
+ System mass, g/mol:          9674.208
+ System density, g/cm^3:         0.879
+ -------------------------------------------------------
+ If calculated density is  different from the  reported 
+ crystallagraphic one,  make sure you remove unresolved 
+ atoms from the adsrobent structure file
+ ------------------------------------------------------
+
+ Helium volume in A^3:       13708.967
+ Helium volume in cm^3/g:        0.853
+
+ Geometric (point accessible) volume in A^3:       12929.701
+ Geometric (point accessible) volume in cm^3/g:        0.805
+
+ !-------------------------------------------------------!
+ ! Pore volume calculations complete                     !
+ !-------------------------------------------------------!
+
+ Step 6/8
+ !-------------------------------------------------------!
+ ! Starting surface area calculations                    !
+ !-------------------------------------------------------!
+
+ Accessible surface area in A^2:                      3069.24
+ Accessible surface area per volume in m^2/cm^3:      1678.94
+ Accessible surface area per mass in m^2/g:           1910.59
+
+ !-------------------------------------------------------!
+ ! Surface area calculations complete                    !
+ !-------------------------------------------------------!
+
+ Step 7/8
+ !-------------------------------------------------------!
+ ! Starting pore size distribution calculations          !
+ !-------------------------------------------------------!
+
+ Cumulative PSD and differential PSD 
+ have been stored in files psd_cumulative.txt
+ and psd.txt
+ !-------------------------------------------------------!
+ ! Pore size distribution calculations complete          !
+ !-------------------------------------------------------!
+
+ Step 8/8
+ !-------------------------------------------------------!
+ ! Starting limiting pore diameter and maximum pore size !
+ ! analysis                                              !
+ !-------------------------------------------------------!
+
+ Pore limiting diameter in A:         6.37
+ Maximum pore diameter in A:         12.74
+ The system is percolated in            3  dimensions (3D pores)
+ !-------------------------------------------------------!
+ ! Limiting pore diameter and maximum pore size          !
+ ! analysis complete                                     !
+ !-------------------------------------------------------!
+
+ !-------------------------------------------------------!
+ ! Simulation complete                                   !
+ !-------------------------------------------------------!

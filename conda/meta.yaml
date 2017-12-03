@@ -1,0 +1,11 @@
+package:
+  name: poreblazer
+  version: "3.0.2"
+
+source:
+  path: ../src
+
+about:
+  home: http://www.homepages.ed.ac.uk/lsarkiso/Research.html
+  license: GPLv3
+  license_file: LICENSE

@@ -1,9 +1,9 @@
 !--------------------------------------------------------------------------------------
 ! This is the main program for characterization of porous solids
 !
-! Poreblazer 3.0.2 / Windows XP
+! Poreblazer 3.0.5 / Windows XP
 !
-! Lev Sarkisov 2012
+! Lev Sarkisov 2018
 !--------------------------------------------------------------------------------------
 
 module parameters
@@ -14,6 +14,7 @@ module parameters
         real*8  :: temp                                  ! temperature (K) required for Helium porosimetry calculations
         integer :: nsample                               ! number of tests for surface area
         integer :: iseed                                 ! random seed number
+        integer :: vis_option                            ! visualization options
 end module parameters
 
 module atoms
@@ -28,12 +29,10 @@ end module atoms
 
 module adsorbent
         use  vector, only:       vectype
-        integer*4 :: natypes, natoms                     ! number of atom types, and atoms in adsorbent structure
-        real*8, allocatable :: coords(:, :)              ! coordinates of the adsorbent (natoms long array)
-        type(vectype), allocatable :: matvec(:)          ! 
-        character*10, allocatable :: adsname(:)          ! names of all atoms in the input coordinates file
-        ! Moved these variables to the results module.
-        !real*8 :: smass, rho                             ! mass of the sample, crystal density of the sample
+        integer*4 :: natypes, natoms                                       ! number of atom types, and atoms in adsorbent structure
+        real*8, allocatable :: coords(:, :), coords_temp(:,:)              ! coordinates of the adsorbent (natoms long array)
+        type(vectype), allocatable :: matvec(:)                            ! 
+        character*10, allocatable :: adsname(:)                            ! names of all atoms in the input coordinates file
 end module adsorbent
 
 module lattice
@@ -77,8 +76,8 @@ end interface initialize
 character(len=256) :: arg
 
 write(*,*) "!-------------------------------------------------------!"
-write(*,*) "! Welcome to Poreblazer_v3.0.2/Linux/Windows XP         !"
-write(*,*) "! Developed by: Lev Sarkisov, 2012                      !"
+write(*,*) "! Welcome to Poreblazer_v3.0.5/Linux/Windows XP         !"
+write(*,*) "! Developed by: Lev Sarkisov, 2012/18                   !"
 write(*,*) "! Cite: Sarkisov, Harrison, Molecular Simulation, 2011  !"
 write(*,*) "!-------------------------------------------------------!"
 write(*,*)
@@ -156,16 +155,18 @@ subroutine initialize(filename)
     use distributions
 
     use defaults, only: rdbl
-    use fundcell, only: fundcell_init, fundamental_cell,  fundcell_slant
+    use fundcell, only: fundcell_init, fundamental_cell,  fundcell_slant, fundcell_unslant
+    use  vector, only:  vectype
     use random, only:   random_init
     use results
 
     implicit none
-    character(len=*), optional :: filename                                 ! input filename, defaults stdin
+    character(len=*), optional :: filename                                              ! input filename, defaults stdin
     integer*4                             :: i, j, k, l                                 ! cycle indicies
     logical                               :: check                                      ! logical variable, required for input analysis
-    character(256)                         :: filename1, filename2, filename3            ! data file names
+    character(256)                        :: filename1, filename2, filename3            ! data file names
     real*8                                :: sigma_he, eps_he, sigma_n                  ! sigma (A) and epsilon (K) of helium; sigma (A) of nitrogen atom
+    type(vectype)                         ::  atvec1
 
     ! Initialization cycle
 
@@ -222,7 +223,7 @@ subroutine initialize(filename)
     ! Now we initialize the adsrobent structure
 
     read(2,*) natoms !  number of atoms in the strucutre
-    allocate (adsname(natoms), coords(3, natoms), atype(natoms), matvec(natoms))
+    allocate (adsname(natoms), coords(3, natoms), coords_temp(3, natoms), atype(natoms), matvec(natoms))
 
     ! Here we read in x, y, z, coordinates of the atoms from the input file
     ! The format of the file is xyz  file
@@ -250,24 +251,9 @@ subroutine initialize(filename)
         end if
     end do
 
-    ! Adjusting the position of the system in case it is seriously outside the simulation cell
-
-    coords(1, :) = coords(1, :) - minval(coords(1, :))
-    coords(2, :) = coords(2, :) - minval(coords(2, :))
-    coords(3, :) = coords(3, :) - minval(coords(3, :))
-    
-    open(40, file = 'new.xyz')
-    write(40,*) natoms     !  number of atoms in the strucutre
-
-    write(40,*)
-
-    do i=1, natoms
-        write(40,'(a, 3f10.5)') adsname(i), coords(1, i), coords(2, i), coords(3, i)
-    end do
-
-    close(40)
-
     ! Parameters of the simulations
+
+
 
     read(3,*) cube_size            ! lattice cube_size size in A and number of rotations per molecule
 
@@ -287,9 +273,48 @@ subroutine initialize(filename)
     fcell%eff(2) = fcell%ell(2)
     fcell%eff(3) = fcell%ell(3)
   
+      do i=1, natoms
+      matvec(i) = fundcell_slant(fcell, matvec(i))
+      end do
+
     do i=1, natoms
-    matvec(i) = fundcell_slant(fcell, matvec(i))
+    coords_temp(:,i) =  matvec(i)%comp 
     end do
+
+    fcell%mx =  minval(coords_temp(1, :))
+    fcell%my =  minval(coords_temp(2, :))
+    fcell%mz =  minval(coords_temp(3, :))
+
+    coords_temp(1, :) = coords_temp(1, :) - fcell%mx
+    coords_temp(2, :) = coords_temp(2, :) - fcell%my
+    coords_temp(3, :) = coords_temp(3, :) - fcell%mz
+
+    do i=1, natoms
+    matvec(i)%comp = coords_temp(:,i)
+    end do
+
+    atvec1%comp(1) = fcell%mx
+    atvec1%comp(2) = fcell%my
+    atvec1%comp(3) = fcell%mz
+
+    atvec1 = fundcell_unslant(fcell, atvec1)
+
+    ! Adjusting the position of the system in case it is seriously outside the simulation cell
+
+    coords(1, :) = coords(1, :) - atvec1%comp(1)
+    coords(2, :) = coords(2, :) - atvec1%comp(2)
+    coords(3, :) = coords(3, :) - atvec1%comp(3)
+
+    open(40, file = 'new.xyz')
+    write(40,*) natoms     !  number of atoms in the strucutre
+
+    write(40,*)
+
+    do i=1, natoms
+        write(40,'(a, 3f10.5)') adsname(i), coords(1, i), coords(2, i), coords(3, i)
+    end do
+
+    close(40)
 
     ncubesx = int(fcell%eff(1)/cube_size)                ! number of cubelets on x side
     cube_size = fcell%eff(1)/dble(ncubesx)               ! corrected size of the cubelet
@@ -328,6 +353,9 @@ subroutine initialize(filename)
     end if
 
     call random_init(iseed)
+
+
+    read(3,*) vis_option
 
     close(1)
     close(2)
@@ -534,8 +562,12 @@ end subroutine helium_lattice
 !--------------------------------------------------------------------------------------
 
 subroutine nitrogen_lattice
+    use parameters
     use lattice
-    use percolation, only: percolation_calc
+    use percolation, only:  percolation_calc
+    use fundcell, only:     fundcell_unslant
+    use vector, only:       vectype
+    use defaults, only:     radTodeg
 
     implicit none
 
@@ -545,6 +577,16 @@ subroutine nitrogen_lattice
     write(*,*)
 
     call percolation_calc(lattice_space_n, n_cubes, nn_cubes, cl_summary)
+
+    ! vusalization options: 1 -xyz, 2 - grd, 3 - both; 0 - none
+    if(vis_option == 1) then 
+    call nitrogen_lattice_vis(1)
+    elseif(vis_option == 2) then
+    call nitrogen_lattice_vis(2)
+    elseif(vis_option == 3) then
+    call nitrogen_lattice_vis(1)
+    call nitrogen_lattice_vis(2)
+    endif
 
     write(*,*) "!-------------------------------------------------------!"
     write(*,*) "! Generation of nitrogen-accessible lattice complete    !"
@@ -645,7 +687,7 @@ subroutine surface_area
     real*8                                :: phi, costheta, theta
     !real*8                                :: stotal, volume  ! Moved these variables to the results module.
     real*8                                :: sjreal, sfrac, stotalreduced, rdist2
-    integer                               :: nx, ny, nz, ncount, i, j, k
+    integer                               :: nx, ny, nz, ncount, i, j, k, nx_temp, ny_temp, nz_temp
     type(VecType)                         :: atvec1, atvec2, sepvec, atvec_temp
     logical                               :: deny
 
@@ -653,6 +695,8 @@ subroutine surface_area
     write(*,*) "! Starting surface area calculations                    !"
     write(*,*) "!-------------------------------------------------------!"
     write(*,*)
+
+ !   open(50, file="surface.xyz", status='unknown')
 
     if (nn_cubes == 0) then
         ! If there are no nitrogen-accessible points, the surface area is zero.
@@ -683,16 +727,21 @@ subroutine surface_area
 
             ! make this vector of (sigma+probe_diameter)/2.0 length
 
-            atvec1%comp = atvec1%comp * (coeff_surface * asigma_n(atype(i))) + coords(:, i)
+            atvec1%comp = atvec1%comp * (coeff_surface * asigma_n(atype(i))) +  coords(:,i)
 
             ! translate the center of the coordinate to the particle i center and apply PBC
 
             ! apply PBCs to ensure that the selected point is within the simulation cell
 
+            atvec_temp = atvec1
+            
             if(fcell%orthoflag.eqv..True.) then
             atvec1 = fundcell_maptocell(fcell,atvec1)
             else
             atvec1 = fundcell_slant(fcell, atvec1)
+!            atvec1%comp(1) =  atvec1%comp(1) - fcell%mx
+!            atvec1%comp(2) =  atvec1%comp(2) - fcell%my
+!            atvec1%comp(3) =  atvec1%comp(3) - fcell%mz
             end if
 
             ! locate the cubelet in which the point sits
@@ -701,12 +750,12 @@ subroutine surface_area
             ny = int(atvec1%comp(2)/cube_size) + 1
             nz = int(atvec1%comp(3)/cube_size) + 1
             
-            if(nx<1) nx = nx + ncubesx
-            if(nx>ncubesx) nx = nx - ncubesx
-            if(ny<1) ny = ny + ncubesy
-            if(ny>ncubesy) ny = ny - ncubesy
-            if(nz<1) nz = nz + ncubesz
-            if(nz>ncubesz) nz = nz - ncubesz
+            if(nx>ncubesx) nx = nx - (nx/ncubesx)*ncubesx
+            if(nx<1) nx = nx + (1-(nx/ncubesx))*ncubesx
+            if(ny>ncubesy) ny = ny - (ny/ncubesy)*ncubesy
+            if(ny<1) ny = ny +  (1-(ny/ncubesy))*ncubesy
+            if(nz>ncubesz) nz = nz - (nz/ncubesz)*ncubesz
+            if(nz<1) nz = nz +  (1-(nz/ncubesz))*ncubesz
 
             if(lattice_space_n(nx,ny,nz)<1) cycle ! reject the point if it is within an atom
 
@@ -731,6 +780,7 @@ subroutine surface_area
 
 
             if(deny) cycle
+!            write(50,*) "Ar ", atvec_temp%comp(1), atvec_temp%comp(2), atvec_temp%comp(3)
             ncount=ncount+1
         end do
 
@@ -852,7 +902,7 @@ subroutine pore_distribution
             atvec2%comp(2) = dble(ny1-1)*cube_size+0.5*cube_size
             atvec2%comp(3) = dble(nz1-1)*cube_size+0.5*cube_size
 
-            atvec2 = fundcell_slant(fcell, atvec2)
+!!LS 09 01 2018            atvec2 = fundcell_slant(fcell, atvec2)
             call fundcell_snglminimage(fcell,atvec1,atvec2,sepvec,rdist2)
 
             if(rdist2>lattice_rdist2(nx1,ny1,nz1)) then    ! if not, cycle
@@ -1002,6 +1052,98 @@ subroutine limiting_diameter
     return
 
 end subroutine limiting_diameter
+
+!--------------------------------------------------------------------------------------
+!       Here we visualize the nitrogen accessible network
+!       using two options: xyz format or grd format
+!--------------------------------------------------------------------------------------
+
+subroutine nitrogen_lattice_vis(option)
+    use parameters
+    use lattice
+    use adsorbent
+    use percolation, only:  percolation_calc
+    use fundcell, only:     fundcell_unslant
+    use vector, only:       vectype
+    use defaults, only:     radTodeg
+
+    implicit none
+    integer                            :: option
+    integer                            :: nx, ny, nz, nxlow, nxup, nylow, nyup, nzlow, nzup, i, j, k
+    integer                            :: ncx, ncy, ncz
+    real                               :: x, y, z, field
+    type(vectype)                      :: atvec1
+
+    
+    if(option==1) then
+    ! Creating a grid of lattice sites accessible to nitrogen probe in xyz fornat
+    open(110, file='nitrogen_network.xyz', status='unknown')
+
+    write(110,*) nn_cubes
+    write(110,*)
+
+    do i=1, nn_cubes
+        nx = lattice_index(1, n_cubes(i))
+        ny = lattice_index(2, n_cubes(i))
+        nz = lattice_index(3, n_cubes(i))
+
+        x = dble(nx-1)*cube_size+0.5*cube_size ! this is the center of the selected cubelet
+        y = dble(ny-1)*cube_size+0.5*cube_size
+        z = dble(nz-1)*cube_size+0.5*cube_size
+
+        x = x +  fcell%mx
+        y = y +  fcell%my
+        z = z +  fcell%mz
+
+        atvec1%comp(1) = x
+        atvec1%comp(2) = y
+        atvec1%comp(3) = z
+
+        atvec1 = fundcell_unslant(fcell, atvec1)
+
+        write(110,*) "N ", atvec1%comp(1), atvec1%comp(2), atvec1%comp(3)
+    end do
+    close(110)
+    return
+    endif
+
+    if(option==2) then
+    open(111, file='nitrogen_network.grd', status='unknown')
+
+    write(111,*) "Poreblazer nitrogen accessible grid: field = r"
+    write(111,*) "(1p,e12.5)"
+    write(111,'(6f12.3)') fcell%ell(1), fcell%ell(2), fcell%ell(3), radTodeg*fcell%anglebc, radTodeg*fcell%angleac, &
+    radTodeg*fcell%angleab
+
+    ncx = ncubesx-1
+    ncy = ncubesy-1
+    ncz = ncubesz-1  
+
+    write(111,*) ncx, ncy, ncz   
+
+    write(111,*) "1 ",  " 0 ", ncx, " 0 ", ncy, " 0 ", ncz
+
+   do k=1,  ncubesz
+    do j=1, ncubesy
+     do i=1, ncubesx
+
+       if(lattice_rdist2(i,j,k) == 0.0) then
+       field = 0.0
+       write(111,'(e12.5)') field
+       else
+       field = sqrt(lattice_rdist2(i,j,k))
+       write(111,'(e12.5)') field
+       endif
+    end do
+    end do
+    end do
+    close(111)
+    return
+    end if
+
+    return
+
+end subroutine nitrogen_lattice_vis
 
 !==============================================================
 

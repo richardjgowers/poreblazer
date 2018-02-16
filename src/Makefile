@@ -52,7 +52,7 @@ endif
 ifeq ($(FC),ifort)
 F90FLAGS = 
 DEBUG_FLAGS = 
-OFLAGS = -O2
+OFLAGS = -O2 
 #LINKERFLAGS = -unsharedf95 # for not using runtime libraries
 endif
 
@@ -62,7 +62,7 @@ endif
 ifeq ($(FC),gfortran)
 F90FLAGS = 
 DEBUG_FLAGS = 
-OFLAGS = -O2
+OFLAGS = -O2 -unshared
 LINKERFLAGS = 
 endif
 

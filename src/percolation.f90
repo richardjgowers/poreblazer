@@ -30,7 +30,7 @@ Contains
         Integer                                                                      :: nc
 
         allocate(cluster(size(lattice_in, 1), size(lattice_in, 2), size(lattice_in, 3)))
-        allocate(cl(10000),trcl(10000))
+        allocate(cl(5000000),trcl(5000000))
         nc = 0
         cluster = 0
         cl = 0
@@ -57,7 +57,7 @@ Contains
         Integer                                                                        :: nc
 
         allocate(cluster(size(lattice_in, 1), size(lattice_in, 2), size(lattice_in, 3)))
-        allocate(cl(10000),trcl(10000))
+        allocate(cl(100000),trcl(100000))
         nc = 0
         cluster = 0
         cl = 0
@@ -90,7 +90,7 @@ Contains
         Integer, Dimension(:), allocatable                                             :: clink
 
 
-        allocate(clink(10000))
+        allocate(clink(100000))
         clink = 0
 
         LX = size(ngrid,1)

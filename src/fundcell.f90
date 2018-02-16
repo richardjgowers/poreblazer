@@ -43,6 +43,7 @@ Module fundcell
     Type(VecType), Dimension(3) :: lvec                      ! Lattice vectors
     Real(kind=RDbl)             :: width(3)     ! width of unit cell in a,b,c
     Real(kind=RDbl)             :: minwidth     ! minimum width of box
+    Real(kind=RDbl)             :: mx, my, mz
   End Type Fundamental_Cell
 
 ! these will be stored during volume moves and copied back if move is not 

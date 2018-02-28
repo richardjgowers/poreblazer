@@ -1,6 +1,6 @@
 package:
   name: poreblazer
-  version: "3.0.2"
+  version: "3.0.5"
 
 source:
   path: ../src

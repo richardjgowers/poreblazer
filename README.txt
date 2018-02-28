@@ -1,5 +1,5 @@
 ================================================
-poreblazer_v3.0.2: Computational structure characterization tools
+poreblazer_v3.0.5: Computational structure characterization tools
 Copyright (C) 2012 Lev Sarkisov
 
 This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ================================================
 
-Welcome to poreblazer_v3.0.2, 07-03-2013.
+Welcome to poreblazer_v3.0.5
 
 Lev.Sarkisov@ed.ac.uk
 ================================================
@@ -30,7 +30,7 @@ application to ordered and disordered porous materials, Molecular
 Simulation, Vol 37, Issue 15, pages 1248-1257, 2011.
 ------------------------------------------------
 
-Please, cite this article if you use poreblazer_v3.0.2. 
+Please, cite this article if you use poreblazer_v3.0.5. 
 
 2. Poreblazer version 3.x.x vs 1.2.x
  
